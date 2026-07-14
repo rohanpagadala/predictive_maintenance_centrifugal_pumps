@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Raw dataset -- not committed; large, and reproducible from its own source.
+data/*.xlsx
+
+# Runtime-generated, not source
+logs/*.log
+logs/*.db
+!logs/.gitkeep
+
+# Real secrets never get committed; .env.example documents the shape instead.
+.env.production.local
+*.local
+
+.DS_Store

@@ -1,0 +1,58 @@
+# Two services, one image (see Dockerfile) -- `docker compose build` builds
+# it once since both services reference the same `image:` tag.
+#
+#   docker build -t pdm-app:latest .
+#   docker compose up -d
+#   docker compose down
+
+services:
+  api:
+    build: .
+    image: pdm-app:latest
+    container_name: pdm-api
+    command: ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "${PDM_API_PORT:-8000}:8000"
+    env_file:
+      - .env
+    environment:
+      - PDM_HOST=0.0.0.0
+      - PDM_PORT=8000
+    volumes:
+      - ./models:/srv/app/models:ro   # shared models folder -- read-only, never written by the containers
+      - ./logs:/srv/app/logs           # persisted logs on the host
+      - ./outputs:/srv/app/outputs:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+  dashboard:
+    build: .
+    image: pdm-app:latest
+    container_name: pdm-dashboard
+    command: ["streamlit", "run", "dashboard/streamlit_app.py",
+              "--server.port", "8501", "--server.address", "0.0.0.0",
+              "--server.headless", "true"]
+    ports:
+      - "${PDM_DASHBOARD_PORT:-8501}:8501"
+    env_file:
+      - .env
+    environment:
+      - PDM_API_URL=http://api:8000   # container-to-container DNS name from the `api` service above
+    volumes:
+      - ./models:/srv/app/models:ro
+      - ./outputs:/srv/app/outputs:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped

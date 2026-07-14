@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.git/
+.venv/
+venv/
+*.ipynb_checkpoints/
+data/*.xlsx
+Predictive_Maintenance_Pipeline.ipynb
+tests/
+.env
+logs/*
+!logs/.gitkeep
+.pytest_cache/

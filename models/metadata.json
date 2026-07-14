@@ -1,0 +1,20 @@
+{
+  "classifier_name": "LightGBM",
+  "classifier_filename": "classification_model_lightgbm.joblib",
+  "regressor_name": "XGBoost",
+  "regressor_filename": "regression_model_xgboost.joblib",
+  "n_features": 34,
+  "class_names": [
+    "Normal",
+    "Warning",
+    "Critical",
+    "Bearing_Failure",
+    "Motor_Failure",
+    "Seal_Failure"
+  ],
+  "saved_at_utc": "2026-07-14T08:18:54.051318+00:00",
+  "joblib_version": "1.5.2",
+  "classifier_test_recall_macro": 0.8,
+  "regressor_test_mae_hours": 39.53,
+  "n_training_rows": 8000
+}
