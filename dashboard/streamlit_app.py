@@ -1278,7 +1278,7 @@ def page_about():
         (Decision Tree, Random Forest, XGBoost, LightGBM) → persistence →
         this FastAPI + Streamlit serving layer.
 
-        **Stack:** pandas, scikit-learn, XGBoost, LightGBM, FastAPI, Streamlit, Docker.
+        **Stack:** pandas, scikit-learn, Random Forest Regressor, LightGBM, FastAPI, Streamlit, Docker.
 
         **Honest caveat:** the classifier's Normal/Warning/Critical predictions
         are reliable (non-overlapping sensor bands in training data). Component-level
