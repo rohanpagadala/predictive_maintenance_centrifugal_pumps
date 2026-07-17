@@ -1,19 +1,44 @@
-from pathlib import Path
-
+import numpy as np
 import pandas as pd
 import pytest
 
 import model_registry as mr
 import retrain
 
-DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "AI_Predictive_Maintenance_Pump_Dataset_10000.xlsx"
+SYNTHETIC_MACHINE_MODELS = ["Nova-P", "Titan-X3"]
+SYNTHETIC_LOCATIONS = ["Onshore-Terminal-1", "Onshore-Terminal-2"]
+
+
+def _build_synthetic_training_dataframe(n_assets: int = 4, rows_per_asset: int = 40, seed: int = 42) -> pd.DataFrame:
+    rng = np.random.RandomState(seed)
+    base_time = pd.Timestamp("2026-01-01")
+    rows = []
+    for a in range(n_assets):
+        asset_id = f"PUMP_{a:04d}"
+        for i in range(rows_per_asset):
+            is_warning = i >= rows_per_asset - 5
+            rows.append({
+                "Timestamp": base_time + pd.Timedelta(hours=i),
+                "Asset_ID": asset_id,
+                "Machine_Model": SYNTHETIC_MACHINE_MODELS[a % len(SYNTHETIC_MACHINE_MODELS)],
+                "Location": SYNTHETIC_LOCATIONS[a % len(SYNTHETIC_LOCATIONS)],
+                "Vibration_mm_s": round(rng.uniform(4.0, 6.0) if is_warning else rng.uniform(1.5, 3.0), 2),
+                "Temperature_C": round(rng.uniform(75, 85) if is_warning else rng.uniform(55, 68), 2),
+                "Pressure_psi": round(rng.uniform(130, 138) if is_warning else rng.uniform(140, 150), 2),
+                "Flow_Rate_m3_h": round(rng.uniform(220, 235) if is_warning else rng.uniform(240, 260), 2),
+                "RUL_Hours": round(rng.uniform(20, 50) if is_warning else rng.uniform(200, 500), 2),
+                "Failure_State": "Warning" if is_warning else "Normal",
+            })
+    return pd.DataFrame(rows)
 
 
 @pytest.fixture(scope="module")
-def small_training_dataset() -> pd.DataFrame:
-    df = pd.read_excel(DATA_PATH)
-    asset_ids = sorted(df["Asset_ID"].unique())[:4]
-    return df[df["Asset_ID"].isin(asset_ids)].reset_index(drop=True)
+def small_training_dataset(tmp_path_factory) -> pd.DataFrame:
+    df = _build_synthetic_training_dataframe()
+    tmp_dir = tmp_path_factory.mktemp("retrain_test_data")
+    xlsx_path = tmp_dir / "synthetic_training_dataset.xlsx"
+    df.to_excel(xlsx_path, index=False)
+    return pd.read_excel(xlsx_path)
 
 
 def test_validate_training_dataset_rejects_empty_dataframe():
@@ -36,7 +61,6 @@ def test_validate_training_dataset_rejects_missing_columns():
 
 
 def test_training_history_tolerates_non_numeric_version(tmp_path):
-    import numpy as np
     from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
     import pdm_utils as u
