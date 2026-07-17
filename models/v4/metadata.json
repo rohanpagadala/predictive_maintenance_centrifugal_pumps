@@ -1,0 +1,23 @@
+{
+  "classifier_name": "LightGBM",
+  "classifier_filename": "classification_model_lightgbm.joblib",
+  "regressor_name": "Random Forest",
+  "regressor_filename": "regression_model_random_forest.joblib",
+  "n_features": 33,
+  "class_names": [
+    "Normal",
+    "Warning",
+    "Critical"
+  ],
+  "saved_at_utc": "2026-07-16T04:03:58.430435+00:00",
+  "joblib_version": "1.5.3",
+  "model_version": "v4",
+  "training_date": "2026-07-16T04:03:58.381941+00:00",
+  "dataset_version": "AI_Predictive_Maintenance_Pump_Dataset_10000.xlsx",
+  "git_commit_hash": "da1bc3fbbaf4c07e8919347b052107866432ddac",
+  "classifier_test_recall_macro": 1.0,
+  "regressor_test_mae_hours": 37.61,
+  "n_training_rows": 8000,
+  "architecture": "3-class health classifier (Normal/Warning/Critical) + separate rule-based fault_diagnosis module for Critical predictions",
+  "note": "Candidate: same classifier/scaler/encoders as v3, regressor swapped to RandomForestRegressor for evaluation. Not promoted to stable."
+}

@@ -1,10 +1,3 @@
-"""
-Raw-input preprocessing for inference: turns validated Pydantic readings into
-the same shape `pdm_utils` expects (Timestamp parsed & sorted, missing values
-imputed, Machine_Model encoded) -- reusing `pdm_utils` functions directly so
-"identical to training" is true by construction, not by re-implementation.
-"""
-
 from __future__ import annotations
 
 import logging
@@ -20,12 +13,11 @@ logger = logging.getLogger(__name__)
 
 _DEFAULT_ASSET_ID = "UNKNOWN_ASSET"
 
-# Maps the API's snake_case field names to the PascalCase columns pdm_utils
-# and the trained models expect.
 _FIELD_TO_COLUMN = {
     "timestamp": "Timestamp",
     "asset_id": "Asset_ID",
     "machine_model": "Machine_Model",
+    "location": "Location",
     "vibration_mm_s": "Vibration_mm_s",
     "temperature_c": "Temperature_C",
     "pressure_psi": "Pressure_psi",
@@ -34,13 +26,6 @@ _FIELD_TO_COLUMN = {
 
 
 def request_to_dataframe(request: PredictionRequest) -> pd.DataFrame:
-    """Convert a validated `PredictionRequest` into a pdm_utils-shaped DataFrame.
-
-    Missing `asset_id` defaults to a shared placeholder (single-pump request);
-    missing `timestamp` values are back-filled with a synthetic, strictly
-    increasing sequence so submission order is preserved as chronological
-    order -- pdm_utils' rolling/lag features depend on that ordering.
-    """
     records = [r.model_dump() for r in request.readings]
     df = pd.DataFrame(records).rename(columns=_FIELD_TO_COLUMN)
 
@@ -57,12 +42,6 @@ def request_to_dataframe(request: PredictionRequest) -> pd.DataFrame:
 
 
 def dataframe_from_csv_bytes(csv_bytes: bytes) -> pd.DataFrame:
-    """Parse an uploaded CSV into the same pdm_utils-shaped DataFrame.
-
-    Accepts either the API's snake_case headers or the training data's
-    PascalCase headers, so a user can re-upload an export of the original
-    dataset without renaming columns by hand.
-    """
     try:
         df = pd.read_csv(pd.io.common.BytesIO(csv_bytes))
     except Exception as exc:
@@ -73,7 +52,7 @@ def dataframe_from_csv_bytes(csv_bytes: bytes) -> pd.DataFrame:
 
     df = df.rename(columns={k: v for k, v in _FIELD_TO_COLUMN.items() if k in df.columns})
 
-    missing_required = {"Machine_Model"} - set(df.columns)
+    missing_required = {"Machine_Model", "Location"} - set(df.columns)
     if missing_required:
         raise InputValidationError(f"CSV is missing required column(s): {sorted(missing_required)}")
 
@@ -84,10 +63,14 @@ def dataframe_from_csv_bytes(csv_bytes: bytes) -> pd.DataFrame:
         )
 
     if "Asset_ID" not in df.columns:
-        # Each CSV row is treated as an independent pump reading with no
-        # history -- assign a unique synthetic Asset_ID per row so rows
-        # aren't accidentally grouped together as one pump's history.
         df["Asset_ID"] = [f"{_DEFAULT_ASSET_ID}_{i}" for i in range(len(df))]
+    elif df["Asset_ID"].isnull().any():
+        raise InputValidationError(
+            "CSV contains missing Asset_ID values -- either provide an Asset_ID for every row "
+            "or omit the column entirely so one is generated for you."
+        )
+    if df["Location"].isnull().any():
+        raise InputValidationError("CSV contains missing Location values.")
     if "Timestamp" not in df.columns:
         df["Timestamp"] = pd.date_range(end=pd.Timestamp.utcnow(), periods=len(df), freq="h")
     df["Timestamp"] = pd.to_datetime(df["Timestamp"], errors="coerce")
@@ -100,17 +83,23 @@ def dataframe_from_csv_bytes(csv_bytes: bytes) -> pd.DataFrame:
         else:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
+    out_of_range_errors = []
+    for col, (lo, hi) in u.VALID_RANGES.items():
+        values = df[col]
+        bad_mask = values.notnull() & ((values < lo) | (values > hi))
+        if bad_mask.any():
+            bad_values = sorted(values[bad_mask].unique().tolist())
+            out_of_range_errors.append(f"{col} must be within [{lo}, {hi}], got {bad_values}")
+    if out_of_range_errors:
+        raise InputValidationError(
+            "CSV contains sensor readings outside the physically valid range "
+            f"the models were trained on: {'; '.join(out_of_range_errors)}"
+        )
+
     return df
 
 
 def impute_missing(df: pd.DataFrame) -> pd.DataFrame:
-    """Fill missing telemetry via pdm_utils' per-asset interpolation.
-
-    Raises `InputValidationError` if any telemetry column remains entirely
-    null for an asset after imputation (nothing to interpolate from and no
-    batch-level median to fall back on) -- silently feeding NaN into a tree
-    model produces a nonsensical prediction, so this fails loudly instead.
-    """
     df = u.handle_missing_values(df, u.RAW_NUMERIC_COLS)
     still_missing = df[u.RAW_NUMERIC_COLS].isnull().any()
     if still_missing.any():
@@ -122,28 +111,29 @@ def impute_missing(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def safe_encode_machine_model(df: pd.DataFrame, encoders: u.LabelEncoders) -> tuple[pd.DataFrame, list[str]]:
-    """Encode Machine_Model with the fitted training encoder, substituting a
-    fallback code (and a warning) for any model name never seen in training.
-
-    `LabelEncoder.transform` raises on unseen labels; re-fitting a new
-    encoder at inference time would silently assign different integers than
-    training used, corrupting the feature -- so unseen values are mapped to
-    the most frequent training class instead, which is the safer default.
-    """
+def safe_encode_categoricals(
+    df: pd.DataFrame, encoders: u.LabelEncoders, feature_engineering_config: dict,
+) -> tuple[pd.DataFrame, list[str]]:
     df = df.copy()
     warnings: list[str] = []
-    le = encoders.encoders["Machine_Model"]
-    known = set(le.classes_)
-    fallback_label = str(le.classes_[0])  # classes_ is sorted; stable, deterministic fallback
+    categorical_cols = feature_engineering_config.get("categorical_cols", ["Machine_Model"])
 
-    unknown_mask = ~df["Machine_Model"].astype(str).isin(known)
-    if unknown_mask.any():
-        unknown_values = sorted(df.loc[unknown_mask, "Machine_Model"].astype(str).unique())
-        msg = f"Unknown machine_model value(s) {unknown_values} -- substituted '{fallback_label}' for encoding."
-        logger.warning(msg)
-        warnings.append(msg)
-        df.loc[unknown_mask, "Machine_Model"] = fallback_label
+    for col in categorical_cols:
+        if col not in df.columns or col not in encoders.encoders:
+            continue
+        le = encoders.encoders[col]
+        known = set(le.classes_)
+        fallback_label = str(le.classes_[0])
 
-    df["Machine_Model_Encoded"] = le.transform(df["Machine_Model"].astype(str))
+        str_col = df[col].astype(str)
+        unknown_mask = ~str_col.isin(known)
+        if unknown_mask.any():
+            unknown_values = sorted(str_col[unknown_mask].unique())
+            msg = f"Unknown {col} value(s) {unknown_values} -- substituted '{fallback_label}' for encoding."
+            logger.warning(msg)
+            warnings.append(msg)
+            str_col = str_col.where(~unknown_mask, fallback_label)
+
+        df[f"{col}_Encoded"] = le.transform(str_col)
+
     return df, warnings

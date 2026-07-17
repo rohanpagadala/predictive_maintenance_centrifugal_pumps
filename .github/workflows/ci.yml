@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - run: pip install ruff
+      - run: ruff check .
+
+  test:
+    runs-on: ubuntu-latest
+    env:
+      PDM_ENV: testing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -v
+
+  docker-build-verify:
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t pdm-app:ci .
+
+      - name: Boot API container and check /health
+        run: |
+          docker run -d --name pdm-api-ci -p 8000:8000 \
+            -e PDM_ENV=testing \
+            pdm-app:ci
+          for i in $(seq 1 15); do
+            if curl -sf http://localhost:8000/health; then
+              echo "API healthy"
+              exit 0
+            fi
+            echo "Waiting for API to become healthy (attempt $i)..."
+            sleep 2
+          done
+          echo "API did not become healthy in time"
+          docker logs pdm-api-ci
+          exit 1
+
+      - name: Boot dashboard container and check its health endpoint
+        run: |
+          docker run -d --name pdm-dashboard-ci -p 8501:8501 \
+            -e PDM_ENV=testing -e PDM_API_URL=http://localhost:8000 \
+            pdm-app:ci \
+            streamlit run dashboard/streamlit_app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
+          for i in $(seq 1 15); do
+            if curl -sf http://localhost:8501/_stcore/health; then
+              echo "Dashboard healthy"
+              exit 0
+            fi
+            echo "Waiting for dashboard to become healthy (attempt $i)..."
+            sleep 2
+          done
+          echo "Dashboard did not become healthy in time"
+          docker logs pdm-dashboard-ci
+          exit 1
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          docker logs pdm-api-ci || true
+          docker logs pdm-dashboard-ci || true
+
+      - name: Clean up containers
+        if: always()
+        run: |
+          docker rm -f pdm-api-ci pdm-dashboard-ci || true

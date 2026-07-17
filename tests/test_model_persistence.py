@@ -1,9 +1,3 @@
-"""Tests for model_persistence.py: save/load round trip fidelity and error
-handling, using tiny throwaway models in a temp directory -- isolated from
-the real project models/ so these tests never touch the actual trained
-artifacts.
-"""
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -45,7 +39,7 @@ def test_save_models_writes_all_expected_files(dummy_artifacts):
         "regression_model_decision_tree_baseline.joblib",
         "feature_scaler.joblib", "label_encoders.joblib",
         "selected_features.joblib", "class_names.joblib",
-        "feature_engineering_config.joblib", "metadata.json",
+        "feature_engineering_config.joblib", "fault_diagnosis_baseline.json", "metadata.json",
     }
     actual = {p.name for p in models_dir.iterdir()}
     assert expected <= actual
@@ -70,7 +64,7 @@ def test_load_models_missing_directory_raises_persistence_error(tmp_path):
 def test_predict_helper_reorders_columns_and_labels_classes(dummy_artifacts):
     models_dir, X, clf, reg = dummy_artifacts
     artifacts = mp.load_models(models_dir)
-    shuffled = X[["c", "a", "b"]]  # deliberately out of order
+    shuffled = X[["c", "a", "b"]]
     result = mp.predict(artifacts, shuffled)
     assert list(result["Failure_Class_Predicted"]) == list(clf.predict(X))
     assert set(result["Failure_State_Predicted"]) <= {"c0", "c1"}

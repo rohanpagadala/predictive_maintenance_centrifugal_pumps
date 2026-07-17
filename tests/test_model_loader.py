@@ -1,5 +1,3 @@
-"""Tests for app.model_loader: artifacts load correctly and are cached."""
-
 from app import model_loader
 
 
@@ -7,10 +5,11 @@ def test_artifacts_have_expected_shape(artifacts):
     assert artifacts.classifier_name
     assert artifacts.regressor_name
     assert len(artifacts.feature_list) > 0
-    assert artifacts.class_names == [
-        "Normal", "Warning", "Critical", "Bearing_Failure", "Motor_Failure", "Seal_Failure",
-    ]
+    assert artifacts.class_names == ["Normal", "Warning", "Critical"]
     assert "raw_numeric_cols" in artifacts.feature_engineering_config
+    assert set(artifacts.fault_diagnosis_baseline) == {
+        "Vibration_mm_s", "Temperature_C", "Pressure_psi", "Flow_Rate_m3_h",
+    }
 
 
 def test_models_are_fitted_and_predict_capable(artifacts):
@@ -22,7 +21,7 @@ def test_models_are_fitted_and_predict_capable(artifacts):
 def test_get_artifacts_is_cached_not_reloaded():
     first = model_loader.get_artifacts()
     second = model_loader.get_artifacts()
-    assert first is second  # same object -> no redundant disk read
+    assert first is second
 
 
 def test_force_reload_returns_equivalent_but_fresh_object():

@@ -1,0 +1,24 @@
+{
+  "classifier_name": "LightGBM",
+  "classifier_filename": "classification_model_lightgbm.joblib",
+  "regressor_name": "XGBoost",
+  "regressor_filename": "regression_model_xgboost.joblib",
+  "n_features": 35,
+  "class_names": [
+    "Normal",
+    "Warning",
+    "Critical",
+    "Bearing_Failure",
+    "Motor_Failure",
+    "Seal_Failure"
+  ],
+  "saved_at_utc": "2026-07-15T03:43:29.785333+00:00",
+  "joblib_version": "1.5.3",
+  "model_version": "v1",
+  "training_date": "2026-07-15T03:43:29.751830+00:00",
+  "dataset_version": "AI_Predictive_Maintenance_Pump_Dataset_10000.xlsx",
+  "git_commit_hash": "da1bc3fbbaf4c07e8919347b052107866432ddac",
+  "classifier_test_recall_macro": 0.8,
+  "regressor_test_mae_hours": 39.62,
+  "n_training_rows": 8000
+}

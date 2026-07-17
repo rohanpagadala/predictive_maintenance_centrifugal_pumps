@@ -1,0 +1,26 @@
+{
+  "classifier_name": "LightGBM",
+  "classifier_filename": "classification_model_lightgbm.joblib",
+  "regressor_name": "Random Forest",
+  "regressor_filename": "regression_model_random_forest.joblib",
+  "n_features": 33,
+  "class_names": [
+    "Normal",
+    "Warning",
+    "Critical"
+  ],
+  "saved_at_utc": "2026-07-17T04:24:57.345652+00:00",
+  "joblib_version": "1.5.3",
+  "model_version": "v5",
+  "training_date": "2026-07-17T04:24:57.304962+00:00",
+  "dataset_version": "validation_pass_retrain_test.xlsx",
+  "git_commit_hash": "da1bc3fbbaf4c07e8919347b052107866432ddac",
+  "classifier_test_accuracy": 1.0,
+  "classifier_test_precision_macro": 1.0,
+  "classifier_test_recall_macro": 1.0,
+  "classifier_test_f1_macro": 1.0,
+  "regressor_test_mae_hours": 37.5037,
+  "regressor_test_rmse_hours": 49.9732,
+  "regressor_test_r2": 0.8801,
+  "n_training_rows": 8000
+}

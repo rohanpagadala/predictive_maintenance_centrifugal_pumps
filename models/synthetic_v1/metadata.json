@@ -1,0 +1,63 @@
+{
+  "trained_at_utc": "2026-07-17T03:40:50.323491+00:00",
+  "dataset": "/Users/rohanpagadala/Downloads/AI_Predictive/data/synthetic_pump_dataset.csv",
+  "n_rows_total": 36000,
+  "n_rows_train": 28800,
+  "n_rows_test": 7200,
+  "feature_columns": [
+    "Vibration",
+    "Temperature",
+    "Pressure",
+    "Flow_Rate",
+    "Operating_Hours",
+    "Machine_Model",
+    "Location"
+  ],
+  "health_status_classes": [
+    "Normal",
+    "Warning",
+    "Critical"
+  ],
+  "fault_type_classes": [
+    "Bearing Failure",
+    "Cavitation",
+    "Corrosion / Wear",
+    "Coupling Failure",
+    "Discharge Blockage",
+    "Impeller Damage",
+    "Lubrication Failure",
+    "Motor Failure",
+    "Normal",
+    "Overheating",
+    "Rotor Imbalance",
+    "Seal Failure",
+    "Shaft Misalignment",
+    "Suction Blockage",
+    "Valve Malfunction"
+  ],
+  "health_status_metrics": {
+    "Model": "Health_Status",
+    "Accuracy": 0.8573611111111111,
+    "Precision_macro": 0.8141124132218308,
+    "Recall_macro": 0.8427434595133608,
+    "F1_macro": 0.8260835189781871
+  },
+  "fault_type_metrics": {
+    "Model": "Fault_Type",
+    "Accuracy": 0.7227777777777777,
+    "Precision_macro": 0.6977073611252422,
+    "Recall_macro": 0.68431108022294,
+    "F1_macro": 0.6887403556962319
+  },
+  "rul_metrics": {
+    "Model": "Remaining_Useful_Life_Hours",
+    "MAE": 678.6234130859375,
+    "RMSE": 965.3281860351562,
+    "R2": 0.8842388391494751
+  },
+  "rul_mae_by_health_status": {
+    "Normal": 914.14,
+    "Warning": 476.38,
+    "Critical": 341.3
+  }
+}

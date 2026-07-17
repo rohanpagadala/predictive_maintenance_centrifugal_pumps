@@ -1,0 +1,12 @@
+# Base visual theme for the PdM dashboard. Kept deliberately distinct from the
+# semantic health-state colors (green/amber/red for Normal/Warning/Critical,
+# defined in dashboard/streamlit_app.py) so a primary action button is never
+# confused with a "Critical" status color.
+[theme]
+base = "light"
+primaryColor = "#0F6E77"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F3F5F6"
+textColor = "#1B2430"
+font = "sans serif"
+baseRadius = "medium"

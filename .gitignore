@@ -10,7 +10,9 @@ data/*.xlsx
 
 # Runtime-generated, not source
 logs/*.log
+logs/*.log.*
 logs/*.db
+logs/*.csv
 !logs/.gitkeep
 
 # Real secrets never get committed; .env.example documents the shape instead.
@@ -18,3 +20,5 @@ logs/*.db
 *.local
 
 .DS_Store
+
+.claude/

@@ -1,0 +1,10 @@
+line-length = 120
+target-version = "py310"
+exclude = ["Predictive_Maintenance_Pipeline.ipynb", "*.ipynb_checkpoints"]
+
+[lint]
+select = ["E", "F", "W"]
+ignore = ["E501"]
+
+[lint.per-file-ignores]
+"pdm_utils.py" = ["E741"]

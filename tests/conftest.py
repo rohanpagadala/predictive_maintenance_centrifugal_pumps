@@ -1,8 +1,6 @@
-"""Shared pytest fixtures: model artifacts and a FastAPI TestClient, both
-loaded once per test session against the real saved models/ artifacts --
-these are integration tests against the actual trained models, not mocks,
-since the whole point is to verify the persisted artifacts still work.
-"""
+import os
+
+os.environ["PDM_ENV"] = "testing"
 
 import pytest
 from fastapi.testclient import TestClient

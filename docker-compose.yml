@@ -1,10 +1,3 @@
-# Two services, one image (see Dockerfile) -- `docker compose build` builds
-# it once since both services reference the same `image:` tag.
-#
-#   docker build -t pdm-app:latest .
-#   docker compose up -d
-#   docker compose down
-
 services:
   api:
     build: .
@@ -18,9 +11,16 @@ services:
     environment:
       - PDM_HOST=0.0.0.0
       - PDM_PORT=8000
+      - PDM_ENV=${PDM_ENV:-production}
+      - PDM_API_KEY_REQUIRED=${PDM_API_KEY_REQUIRED:-true}
+      - PDM_API_KEY=${PDM_API_KEY:?PDM_API_KEY must be set -- see .env.production}
+      - PDM_ALLOWED_ORIGINS=${PDM_ALLOWED_ORIGINS:-http://localhost:8501}
+      - PDM_RATE_LIMIT_PREDICT=${PDM_RATE_LIMIT_PREDICT:-20/minute}
+      - PDM_RATE_LIMIT_DEFAULT=${PDM_RATE_LIMIT_DEFAULT:-120/minute}
+      - PDM_LOG_LEVEL=${PDM_LOG_LEVEL:-WARNING}
     volumes:
-      - ./models:/srv/app/models:ro   # shared models folder -- read-only, never written by the containers
-      - ./logs:/srv/app/logs           # persisted logs on the host
+      - ./models:/srv/app/models
+      - ./logs:/srv/app/logs
       - ./outputs:/srv/app/outputs:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -42,7 +42,8 @@ services:
     env_file:
       - .env
     environment:
-      - PDM_API_URL=http://api:8000   # container-to-container DNS name from the `api` service above
+      - PDM_API_URL=http://api:8000
+      - PDM_ENV=${PDM_ENV:-production}
     volumes:
       - ./models:/srv/app/models:ro
       - ./outputs:/srv/app/outputs:ro

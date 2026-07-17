@@ -1,9 +1,3 @@
-"""
-Shared utilities: logging setup, timing helpers, and the exception types
-every other app module raises so `api.py` can map them to HTTP status codes
-in one place.
-"""
-
 from __future__ import annotations
 
 import logging
@@ -20,11 +14,6 @@ _CONFIGURED = False
 
 
 def setup_logging() -> None:
-    """Configure root logging once: console + rotating file handlers.
-
-    Safe to call multiple times (e.g. once per Streamlit rerun) -- only
-    attaches handlers on the first call.
-    """
     global _CONFIGURED
     if _CONFIGURED:
         return
@@ -54,8 +43,6 @@ def setup_logging() -> None:
 
 
 def get_prediction_logger() -> logging.Logger:
-    """A dedicated logger for prediction results, written to its own file
-    so prediction audit trails don't get lost in general API chatter."""
     logger = logging.getLogger("pdm.predictions")
     if not any(isinstance(h, RotatingFileHandler) and h.baseFilename == str(config.PREDICTION_LOG_FILE)
                for h in logger.handlers):
@@ -69,13 +56,6 @@ def get_prediction_logger() -> logging.Logger:
 
 @contextmanager
 def timed(logger: logging.Logger, label: str) -> Iterator[dict]:
-    """Context manager that logs and returns elapsed wall-clock time in ms.
-
-    Usage:
-        with timed(logger, "model load") as t:
-            ...
-        # t["elapsed_ms"] is available after the block exits
-    """
     start = time.perf_counter()
     result: dict[str, float] = {}
     try:
@@ -87,8 +67,6 @@ def timed(logger: logging.Logger, label: str) -> Iterator[dict]:
 
 
 def to_json_safe(value: Any) -> Any:
-    """Convert numpy/pandas scalar types to plain Python types for JSON
-    serialization -- FastAPI's default encoder chokes on np.float32/np.int64."""
     if isinstance(value, (np.integer,)):
         return int(value)
     if isinstance(value, (np.floating,)):
@@ -101,17 +79,16 @@ def to_json_safe(value: Any) -> Any:
 
 
 class PdMError(Exception):
-    """Base class for all handled errors in the serving layer."""
+    pass
 
 
 class InputValidationError(PdMError):
-    """Raised when request data fails validation beyond what Pydantic checks
-    (e.g. a fully-empty history, an unusable timestamp ordering)."""
+    pass
 
 
 class InferenceError(PdMError):
-    """Raised when the loaded models fail to produce a prediction."""
+    pass
 
 
 class ArtifactLoadError(PdMError):
-    """Raised when saved model artifacts can't be loaded at startup."""
+    pass

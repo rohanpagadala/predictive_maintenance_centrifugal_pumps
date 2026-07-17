@@ -1,0 +1,97 @@
+{
+  "latest": "v7",
+  "stable": "v4",
+  "stable_history": [
+    "v1",
+    "v2",
+    "v3",
+    "v3",
+    "v4",
+    "v1",
+    "v4"
+  ],
+  "versions": {
+    "v1": {
+      "model_version": "v1",
+      "training_date": "2026-07-15T03:43:29.751830+00:00",
+      "dataset_version": "AI_Predictive_Maintenance_Pump_Dataset_10000.xlsx",
+      "git_commit_hash": "da1bc3fbbaf4c07e8919347b052107866432ddac",
+      "classifier_test_recall_macro": 0.8,
+      "regressor_test_mae_hours": 39.62,
+      "n_training_rows": 8000
+    },
+    "v2": {
+      "model_version": "v2",
+      "training_date": "2026-07-15T04:26:11.505422+00:00",
+      "dataset_version": "AI_Predictive_Maintenance_Pump_Dataset_10000.xlsx",
+      "git_commit_hash": "da1bc3fbbaf4c07e8919347b052107866432ddac",
+      "classifier_test_recall_macro": 1.0,
+      "regressor_test_mae_hours": 39.15,
+      "n_training_rows": 8000,
+      "architecture": "3-class health classifier (Normal/Warning/Critical) + separate rule-based fault_diagnosis module for Critical predictions"
+    },
+    "v3": {
+      "model_version": "v3",
+      "training_date": "2026-07-15T09:11:22.829587+00:00",
+      "dataset_version": "AI_Predictive_Maintenance_Pump_Dataset_10000.xlsx",
+      "git_commit_hash": "da1bc3fbbaf4c07e8919347b052107866432ddac",
+      "classifier_test_recall_macro": 1.0,
+      "regressor_test_mae_hours": 39.15,
+      "n_training_rows": 8000,
+      "architecture": "3-class health classifier (Normal/Warning/Critical) + separate rule-based fault_diagnosis module for Critical predictions"
+    },
+    "v4": {
+      "model_version": "v4",
+      "training_date": "2026-07-16T04:03:58.381941+00:00",
+      "dataset_version": "AI_Predictive_Maintenance_Pump_Dataset_10000.xlsx",
+      "git_commit_hash": "da1bc3fbbaf4c07e8919347b052107866432ddac",
+      "classifier_test_recall_macro": 1.0,
+      "regressor_test_mae_hours": 37.61,
+      "n_training_rows": 8000,
+      "architecture": "3-class health classifier (Normal/Warning/Critical) + separate rule-based fault_diagnosis module for Critical predictions",
+      "note": "Candidate: same classifier/scaler/encoders as v3, regressor swapped to RandomForestRegressor for evaluation. Not promoted to stable."
+    },
+    "v5": {
+      "model_version": "v5",
+      "training_date": "2026-07-17T04:24:57.304962+00:00",
+      "dataset_version": "validation_pass_retrain_test.xlsx",
+      "git_commit_hash": "da1bc3fbbaf4c07e8919347b052107866432ddac",
+      "classifier_test_accuracy": 1.0,
+      "classifier_test_precision_macro": 1.0,
+      "classifier_test_recall_macro": 1.0,
+      "classifier_test_f1_macro": 1.0,
+      "regressor_test_mae_hours": 37.5037,
+      "regressor_test_rmse_hours": 49.9732,
+      "regressor_test_r2": 0.8801,
+      "n_training_rows": 8000
+    },
+    "v6": {
+      "model_version": "v6",
+      "training_date": "2026-07-17T04:59:57.040589+00:00",
+      "dataset_version": "AI_Predictive_Maintenance_Pump_Dataset_10000.xlsx",
+      "git_commit_hash": "da1bc3fbbaf4c07e8919347b052107866432ddac",
+      "classifier_test_accuracy": 1.0,
+      "classifier_test_precision_macro": 1.0,
+      "classifier_test_recall_macro": 1.0,
+      "classifier_test_f1_macro": 1.0,
+      "regressor_test_mae_hours": 37.5037,
+      "regressor_test_rmse_hours": 49.9732,
+      "regressor_test_r2": 0.8801,
+      "n_training_rows": 8000
+    },
+    "v7": {
+      "model_version": "v7",
+      "training_date": "2026-07-17T05:02:26.650299+00:00",
+      "dataset_version": "AI_Predictive_Maintenance_Pump_Dataset_10000.xlsx",
+      "git_commit_hash": "da1bc3fbbaf4c07e8919347b052107866432ddac",
+      "classifier_test_accuracy": 1.0,
+      "classifier_test_precision_macro": 1.0,
+      "classifier_test_recall_macro": 1.0,
+      "classifier_test_f1_macro": 1.0,
+      "regressor_test_mae_hours": 37.5037,
+      "regressor_test_rmse_hours": 49.9732,
+      "regressor_test_r2": 0.8801,
+      "n_training_rows": 8000
+    }
+  }
+}
