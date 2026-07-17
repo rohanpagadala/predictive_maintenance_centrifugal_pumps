@@ -16,7 +16,6 @@ import pandas as pd
 import seaborn as sns
 from lightgbm import LGBMClassifier
 from sklearn.metrics import (
-    ConfusionMatrixDisplay,
     accuracy_score,
     classification_report,
     confusion_matrix,
